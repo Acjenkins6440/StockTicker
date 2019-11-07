@@ -16,6 +16,7 @@ const App = ({ msg }) => {
 
 App.propTypes = {
   msg: PropTypes.string.isRequired,
+  endPoint: PropTypes.string.isRequired,
 };
 
 export default App;

@@ -1,8 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import StockTickerApp from './components/StockTickerApp';
+import Test from './components/Test2';
 
 ReactDOM.render(
-  <StockTickerApp msg="hello" />,
+  <Test msg="hello" />,
   document.getElementById('app'),
 );
