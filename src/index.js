@@ -4,6 +4,6 @@ import StockTickerApp from './components/StockTickerApp';
 import Test from './components/Test2';
 
 ReactDOM.render(
-  <Test msg="hello" />,
+  <StockTickerApp />,
   document.getElementById('app'),
 );
