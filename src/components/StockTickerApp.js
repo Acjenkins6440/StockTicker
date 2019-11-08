@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import StockContainer from './StockContainer';
 import apiConfig from '../../config';
 
