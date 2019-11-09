@@ -28,7 +28,7 @@ const StockContainer = ({ endPoint, symbol }) => {
   const maxP = () => Math.max(...dataSet.map((dataPoint) => dataPoint.p));
   const minP = () => Math.min(...dataSet.map((dataPoint) => dataPoint.p));
 
-  const timeFormat = d3.timeFormat(":%S");
+  const timeFormat = d3.timeFormat(':%S');
   const maxXDomain = () => minTime() + (60 * 5);
   const minYDomain = () => minP() * 0.9999;
   const maxYDomain = () => maxP() * 1.0001;
@@ -69,8 +69,8 @@ const StockContainer = ({ endPoint, symbol }) => {
         .attr('class', 'x-axis')
         .attr('transform', `translate(0,${height})`)
         .call(d3.axisBottom(xScale)
-            .ticks(5)
-            .tickFormat(timeFormat)) // Create an axis component with d3.axisBottom
+          .ticks(5)
+          .tickFormat(timeFormat)); // Create an axis component with d3.axisBottom
       svg
         .append('g')
         .attr('class', 'y-axis')
@@ -101,8 +101,8 @@ const StockContainer = ({ endPoint, symbol }) => {
       .transition()
       .duration(200)
       .call(d3.axisBottom(xScale)
-          .ticks(5)
-          .tickFormat(timeFormat));
+        .ticks(5)
+        .tickFormat(timeFormat));
     update
       .select('.y-axis')
       .transition()
