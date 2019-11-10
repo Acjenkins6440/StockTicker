@@ -1,6 +1,6 @@
 .line {
     fill: none;
-    stroke: #ffab00;
+    stroke: #66FCF1;
     stroke-width: 3;
 }
 
@@ -10,11 +10,16 @@
 }
 
 /* Style the dots by assigning a fill and stroke */
-.dot {
-    fill: #ffab00;
-    stroke: #fff;
+circle {
+    fill: #45A29E;
+    stroke: #000;
 }
-
+button {
+  background-color: #C5C6C7;
+}
+button:active{
+  background-color: #1F2833;
+}
 .focus circle {
   fill: none;
   stroke: steelblue;
@@ -26,8 +31,33 @@
     height: 28px;
     padding: 2px;
     font: 12px sans-serif;
-    background: lightsteelblue;
+    background: #C5C6C7;
     border: 0px;
     border-radius: 8px;
     pointer-events: none;
+    z-index: 10;
+}
+.x-axis,
+.y-axis {
+  color: #C5C6C7;
+}
+body {
+  background-color: #0B0C10;
+}
+.loading {
+  z-index: 10;
+  left:50%
+  position:absolute;
+  margin-left: -300;
+  color: #66FCF1;
+}
+.graph-area {
+  z-index: 1;
+  background-color: #1F2833;
+  left: 50%;
+  position: absolute;
+  margin-left: -300;
+  border-radius: 5%;
+  border-width: 5px;
+  border-color: white;
 }

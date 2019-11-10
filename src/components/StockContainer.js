@@ -29,6 +29,8 @@ const maxTime = (data) => ((data[0]) ? data[0].time : 0);
 const maxPrice = (data) => Math.max(...data.map((dataPoint) => dataPoint.high));
 const minPrice = (data) => Math.min(...data.map((dataPoint) => dataPoint.low));
 
+const formatYScale = (dollars) => `$${dollars}`;
+
 const getXScale = (data) => d3
   .scaleTime()
   .domain([minTime(data), maxTime(data)])
@@ -56,7 +58,7 @@ const StockContainer = ({ stockSymbol }) => {
   });
   const [timeSelection, updateTimeSelection] = useState('90Days');
   const [symbol, updateSymbol] = useState(stockSymbol);
-  const alphavantageURL = `https://www.alphavantage.co/query?apikey=${apiConfig.alphavantageKey2}&symbol=${symbol}&function=`;
+  const alphavantageURL = `https://www.alphavantage.co/query?apikey=${apiConfig.alphavantageKey3}&symbol=${symbol}&function=`;
   const series = (timeSelection === 'tickerMode') ? minuteSeries : dailySeries;
   // Update symbol if necessary
   if (symbol !== stockSymbol) {
@@ -217,7 +219,8 @@ const StockContainer = ({ stockSymbol }) => {
     svg
       .append('g')
       .attr('class', 'y-axis')
-      .call(d3.axisLeft(yScale));
+      .call(d3.axisLeft(yScale)
+        .tickFormat(formatYScale));
     svg
       .append('path')
       .attr('class', 'line')
@@ -255,7 +258,8 @@ const StockContainer = ({ stockSymbol }) => {
       .select('.y-axis')
       .transition()
       .duration(400)
-      .call(d3.axisLeft(yScale));
+      .call(d3.axisLeft(yScale)
+        .tickFormat(formatYScale));
     if (switchSets) {
       update
         .select('.line')
@@ -287,7 +291,7 @@ const StockContainer = ({ stockSymbol }) => {
   };
 
   useEffect(() => {
-    const alphavantageURL = `https://www.alphavantage.co/query?apikey=${apiConfig.alphavantageKey2}&symbol=${symbol}&function=`;
+    const alphavantageURL = `https://www.alphavantage.co/query?apikey=${apiConfig.alphavantageKey3}&symbol=${symbol}&function=`;
     const endPoint = alphavantageURL + dailyFunction;
     async function getStockData() {
       const response = await fetch(endPoint);
@@ -318,7 +322,7 @@ const StockContainer = ({ stockSymbol }) => {
     }
   }, [timeSelection, dataSets]);
   return (
-    <div>
+    <div className="graph-area">
       {
       dataSets[dailySeries].length === 0
         ? <div className="loading">Loading...</div>
