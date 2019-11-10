@@ -1,10 +1,10 @@
 import React from 'react';
-import StockContainer from './Test';
+import SymbolSelector from './SymbolSelector';
 
 
 const App = () => (
   <div>
-    <StockContainer symbol="EQH" />
+    <SymbolSelector />
   </div>
 );
 
