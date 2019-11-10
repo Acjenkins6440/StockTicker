@@ -4,7 +4,7 @@ import StockContainer from './Test';
 
 const App = () => (
   <div>
-    <StockContainer symbol="NFLX" />
+    <StockContainer symbol="EQH" />
   </div>
 );
 
