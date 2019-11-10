@@ -1,7 +1,6 @@
 const path = require('path');
 
 module.exports = (env) => {
-  console.log(env);
   return {
     mode: env,
     entry: './src/index.js',
@@ -12,25 +11,15 @@ module.exports = (env) => {
     module: {
       rules: [
         {
-          test: /\.js$/,
           exclude: /node_modules/,
           use: {
-            loader: 'babel-loader',
-            options: {
-              "presets": [
-                [
-                  "@babel/preset-env",
-                  {
-                    useBuiltIns: "entry",
-                    corejs: 3
-                  }
-                ],
-                "@babel/preset-react",
-                "airbnb"],
-            },
+            loader: 'babel-loader'
           },
         },
       ],
+    },
+    resolve: {
+      extensions: ['.js']
     },
   };
 };

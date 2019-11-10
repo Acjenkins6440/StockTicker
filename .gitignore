@@ -8,9 +8,6 @@ yarn-error.log*
 # Distribution package
 
 
-# API Config Data
-config.js
-
 # Runtime data
 pids
 *.pid

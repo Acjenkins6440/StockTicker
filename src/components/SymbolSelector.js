@@ -1,8 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react';
-import PropTypes from 'prop-types';
-import * as d3 from 'd3';
-import apiConfig from '../../config';
-import StockContainer from './StockContainer.js';
+import React, { useState } from 'react';
+import StockContainer from './StockContainer';
 
 const SymbolSelector = () => {
   const [symbol, updateSymbol] = useState('NFLX');
@@ -19,7 +16,7 @@ const SymbolSelector = () => {
           <option value="UBER">Uber</option>
         </select>
       </form>
-      <StockContainer symbol={symbol} />
+      <StockContainer stockSymbol={symbol} />
     </div>
   );
 };

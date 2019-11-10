@@ -1,5 +1,5 @@
 import React, {
-  useEffect, useState, useRef, setState,
+  useEffect, useState, useRef,
 } from 'react';
 import PropTypes from 'prop-types';
 import * as d3 from 'd3';
@@ -46,25 +46,8 @@ const getLine = (xScale, yScale) => d3
 
 const isGraphInitialized = () => document.getElementById('initializedGraph') !== null;
 
-const StockContainer = (props) => {
-  const mouseoverFunc = (dataPoint) => {
-    const dollarPrice = parseFloat(dataPoint.close);
-    const timeStamp = (timeSelection === 'tickerMode')
-      ? dataPoint.time.toLocaleTimeString().replace(/([\d]+:[\d]{2})(:[\d]{2})(.*)/, '$1$2$3')
-      : `${months[dataPoint.time.getMonth()]} ${dataPoint.time.getDate()}`;
-
-    const tooltip = d3.select('.tooltip')
-      .style('opacity', 0.9)
-      .html(`${timeStamp}<br/>$${dollarPrice}`)
-      .style('left', `${d3.event.pageX}px`)
-      .style('top', `${d3.event.pageY - 28}px`);
-  };
-  const mouseoutFunc = (dataPoint) => {
-    const tooltip = d3.select('.tooltip')
-      .transition()
-      .duration(200)
-      .style('opacity', 0);
-  };
+const StockContainer = ({ stockSymbol }) => {
+  // Define constants
   const graphContainer = useRef(null);
   const [dataSets, updateDataSets] = useState({
     [dailySeries]: [],
@@ -72,13 +55,36 @@ const StockContainer = (props) => {
     tickerData: [],
   });
   const [timeSelection, updateTimeSelection] = useState('90Days');
-  const [symbol, updateSymbol] = useState(props.symbol);
-  const alphavantageEndPoint = `https://www.alphavantage.co/query?apikey=${apiConfig.alphavantageKey2}&symbol=${symbol}&function=`;
-  if (symbol != props.symbol) {
-    updateSymbol(props.symbol);
-  }
+  const [symbol, updateSymbol] = useState(stockSymbol);
+  const alphavantageURL = `https://www.alphavantage.co/query?apikey=${apiConfig.alphavantageKey2}&symbol=${symbol}&function=`;
   const series = (timeSelection === 'tickerMode') ? minuteSeries : dailySeries;
+  // Update symbol if necessary
+  if (symbol !== stockSymbol) {
+    updateSymbol(stockSymbol);
+  }
+  // Define constant functions
+  const mouseoverFunc = (dataPoint) => {
+    const dollarPrice = parseFloat(dataPoint.close);
+    const timeStamp = (timeSelection === 'tickerMode')
+      ? dataPoint.time.toLocaleTimeString().replace(/([\d]+:[\d]{2})(:[\d]{2})(.*)/, '$1$2$3')
+      : `${months[dataPoint.time.getMonth()]} ${dataPoint.time.getDate()}`;
+
+    d3.select('.tooltip')
+      .style('opacity', 0.9)
+      .html(`${timeStamp}<br/>$${dollarPrice}`)
+      .style('left', `${d3.event.pageX}px`)
+      .style('top', `${d3.event.pageY - 28}px`);
+  };
+
+  const mouseoutFunc = () => {
+    d3.select('.tooltip')
+      .transition()
+      .duration(200)
+      .style('opacity', 0);
+  };
+
   const handleNewData = (newDataSet, tickerMode, updateDaily) => {
+    // Tacking on single data points from the ticker
     const singleDataPoint = newDataSet.t !== undefined;
     if (singleDataPoint) {
       const timeStamp = new Date(newDataSet.t * 1000);
@@ -96,11 +102,7 @@ const StockContainer = (props) => {
       });
       return;
     }
-
-    const dataSet = updateDaily
-      ? dataSets[dailySeries]
-      : dataSets[series];
-
+    // Replacing dataSets
     const timeSeries = updateDaily
       ? newDataSet[dailySeries]
       : newDataSet[series];
@@ -121,9 +123,9 @@ const StockContainer = (props) => {
     });
     if (updateDaily) {
       updateDataSets({
-        ...dataSets,
         [dailySeries]: massagedData,
         [series]: [],
+        tickerData: [],
       });
     } else {
       updateDataSets({
@@ -135,6 +137,7 @@ const StockContainer = (props) => {
 
   const handleNewTickerData = (tickerData) => {
     const dataSet = dataSets[series];
+    // Prevent the ticker data from updating more than once every second
     const timeStamp = new Date(tickerData.t * 1000);
     const previousTime = dataSet[dataSet.length - 1].time;
     const differenceInTime = timeStamp.getTime() - previousTime.getTime();
@@ -154,7 +157,7 @@ const StockContainer = (props) => {
   const initializeTickerMode = () => {
     const interval = '1min';
     const outputSize = 'compact';
-    const endPoint = `${alphavantageEndPoint}${intraDayFunction}&interval=${interval}&outpusize=${outputSize}`;
+    const endPoint = `${alphavantageURL}${intraDayFunction}&interval=${interval}&outpusize=${outputSize}`;
     const tickerMode = true;
     async function getIntraDayData() {
       const response = await fetch(endPoint);
@@ -192,7 +195,7 @@ const StockContainer = (props) => {
       .append('g')
       .attr('transform', `translate(${margin.left},${margin.top})`)
       .attr('id', 'initializedGraph');
-    const tooltip = d3.select('.tooltip-area')
+    d3.select('.tooltip-area')
       .append('span')
       .attr('class', 'tooltip')
       .style('opacity', 0);
@@ -284,8 +287,8 @@ const StockContainer = (props) => {
   };
 
   useEffect(() => {
-    const alphavantageEndPoint = `https://www.alphavantage.co/query?apikey=${apiConfig.alphavantageKey2}&symbol=${symbol}&function=`;
-    const endPoint = alphavantageEndPoint + dailyFunction;
+    const alphavantageURL = `https://www.alphavantage.co/query?apikey=${apiConfig.alphavantageKey2}&symbol=${symbol}&function=`;
+    const endPoint = alphavantageURL + dailyFunction;
     async function getStockData() {
       const response = await fetch(endPoint);
       const data = await response.json();
@@ -327,12 +330,14 @@ const StockContainer = (props) => {
         height={500}
         ref={graphContainer}
       />
-      <button onClick={newTimeSelection} className="90Days">90 Business Days</button>
-      <button onClick={newTimeSelection} className="30Days">30 Business Days</button>
-      <button onClick={newTimeSelection} className="tickerMode">Ticker Mode</button>
+      <button onClick={newTimeSelection} className="90Days" type="button">90 Business Days</button>
+      <button onClick={newTimeSelection} className="30Days" type="button">30 Business Days</button>
+      <button onClick={newTimeSelection} className="tickerMode" type="button">Ticker Mode</button>
     </div>
   );
 };
 
-
+StockContainer.propTypes = {
+  stockSymbol: PropTypes.string.isRequired,
+};
 export default StockContainer;
