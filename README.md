@@ -8,4 +8,4 @@ In order to start tracking a new stock, just pick one from the dropdown at the t
 
 ### Entering Ticker Mode
 
-Ticker mode fetches the last few hours of trade data, and then starts appending real-time trades to the end of the graph.  *Ticker Mode only available during open stock market hours (9:30am - 4pm EST)*
+Ticker mode fetches the last few hours of trade data, and then starts appending real-time trades to the end of the graph.  _*Ticker Mode only available during open stock market hours (9:30am - 4pm EST)*_
