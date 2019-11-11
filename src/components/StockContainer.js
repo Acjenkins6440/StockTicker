@@ -4,15 +4,12 @@ import React, {
 import PropTypes from 'prop-types';
 import * as d3 from 'd3';
 import apiConfig from '../../config';
-// import 'whatwg-fetch';
-
 
 const margin = {
   top: 50, bottom: 50, left: 50, right: 50,
 };
-const width = 500;
-const height = 400;
-const webSocketEndPoint = `wss://ws.finnhub.io?token=${apiConfig.finnhubKey}`;
+const width = Math.max(document.documentElement.clientWidth * 0.7 || 600);
+const height = Math.max(document.documentElement.clientHeight * 0.6 || 500);
 
 const dailyFunction = 'TIME_SERIES_DAILY';
 const intraDayFunction = 'TIME_SERIES_INTRADAY';
@@ -23,6 +20,7 @@ const high = '2. high';
 const low = '3. low';
 const close = '4. close';
 const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const webSocketEndPoint = `wss://ws.finnhub.io?token=${apiConfig.finnhubKey}`;
 
 const minTime = (data) => ((data[data.length - 1]) ? data[data.length - 1].time : 0);
 const maxTime = (data) => ((data[0]) ? data[0].time : 0);
@@ -75,7 +73,7 @@ const StockContainer = ({ stockSymbol }) => {
       .style('opacity', 0.9)
       .html(`${timeStamp}<br/>$${dollarPrice}`)
       .style('left', `${d3.event.pageX}px`)
-      .style('top', `${d3.event.pageY - 28}px`);
+      .style('top', `${d3.event.pageY}px`);
   };
 
   const mouseoutFunc = () => {
@@ -149,7 +147,10 @@ const StockContainer = ({ stockSymbol }) => {
     }
   };
   const newTimeSelection = (e) => {
-    const type = e.target.className;
+    const type = e.target.id;
+    d3.selectAll('button')
+      .attr('class', '');
+    e.target.className = 'active-button';
     if (type === timeSelection) {
       return;
     }
@@ -171,13 +172,13 @@ const StockContainer = ({ stockSymbol }) => {
   };
 
   const initializeTickerData = () => {
-    const socket = new WebSocket(webSocketEndPoint);
-    socket.addEventListener('open', () => {
-      socket.send(
+    const webSocket = new WebSocket(webSocketEndPoint);
+    webSocket.addEventListener('open', () => {
+      webSocket.send(
         JSON.stringify({ type: 'subscribe', symbol }),
       );
     });
-    socket.addEventListener('message', (event) => {
+    webSocket.addEventListener('message', (event) => {
       const eventData = JSON.parse(event.data);
       if (eventData.type === 'trade') {
         const stockData = eventData.data[0];
@@ -230,7 +231,7 @@ const StockContainer = ({ stockSymbol }) => {
     svg.selectAll('dot')
       .data(dataSet)
       .enter().append('circle')
-      .attr('r', 4)
+      .attr('r', 5)
       .attr('cx', (dataPoint) => xScale(dataPoint.time))
       .attr('cy', (dataPoint) => yScale(dataPoint.close))
       .on('mouseover', mouseoverFunc)
@@ -280,7 +281,7 @@ const StockContainer = ({ stockSymbol }) => {
       .data(dataSet)
       .enter().append('circle')
       .transition()
-      .attr('r', 3)
+      .attr('r', 5)
       .attr('cx', (dataPoint) => xScale(dataPoint.time))
       .attr('cy', (dataPoint) => yScale(dataPoint.close))
       .attr('transform', `translate(${margin.left},${margin.top})`)
@@ -310,10 +311,8 @@ const StockContainer = ({ stockSymbol }) => {
 
   useEffect(() => {
     const dataSet = dataSets[series];
-    if (timeSelection === 'tickerMode' && dataSet.length === 0) {
-      initializeTickerMode();
-    } else if (timeSelection === 'tickerMode' && dataSet.length === 100) {
-      initializeTickerData();
+    if (timeSelection === 'tickerMode') {
+      if (dataSet.length === 0) { initializeTickerMode(); } else if (dataSet.length === 100) { initializeTickerData(); }
     }
     if (graphContainer.current && dataSet.length > 0 && !isGraphInitialized()) {
       buildGraph();
@@ -321,22 +320,25 @@ const StockContainer = ({ stockSymbol }) => {
       updateGraph();
     }
   }, [timeSelection, dataSets]);
+
   return (
-    <div className="graph-area">
+    <div>
       {
-      dataSets[dailySeries].length === 0
-        ? <div className="loading">Loading...</div>
-        : <div className="tooltip-area" />
-    }
+        dataSets[dailySeries].length === 0
+          ? <div className="loading">Loading...</div>
+          : <div />
+      }
       <svg
         className="d3-component"
-        width={600}
-        height={500}
+        width={width + margin.left + margin.right}
+        height={height + margin.top + margin.bottom}
         ref={graphContainer}
       />
-      <button onClick={newTimeSelection} className="90Days" type="button">90 Business Days</button>
-      <button onClick={newTimeSelection} className="30Days" type="button">30 Business Days</button>
-      <button onClick={newTimeSelection} className="tickerMode" type="button">Ticker Mode</button>
+      <div className="button-area">
+        <button onClick={newTimeSelection} id="90Days" type="button" className="active-button">90 Business Days</button>
+        <button onClick={newTimeSelection} id="30Days" type="button">30 Business Days</button>
+        <button onClick={newTimeSelection} id="tickerMode" type="button">Ticker Mode</button>
+      </div>
     </div>
   );
 };

@@ -3,7 +3,7 @@ import SymbolSelector from './SymbolSelector';
 
 
 const App = () => (
-  <div>
+  <div className="tooltip-area">
     <SymbolSelector />
   </div>
 );
