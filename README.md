@@ -1,11 +1,11 @@
 # Stock Ticker
 
-This app shows every trade from when you open it to when you close it for a few pre-loaded stock symbols.  
+This app shows 90 and 30 day historical stock data for three selectable stocks.  
 
-### Adding new symbols
+### Tracking a new stock
 
-In order to start tracking a new stock, simply click the plus button and search for a symbol, then select the one you want to track.  (TODO)
+In order to start tracking a new stock, just pick one from the dropdown at the top of the graph.
 
-### Removing symbols
+### Entering Ticker Mode
 
-To remove a stock ticker, click the "X" next to its title! (TODO)
+Ticker mode fetches the last few hours of trade data, and then starts appending real-time trades to the end of the graph.  __*Ticker Mode only available during open stock market hours (9:30am - 4pm EST)*__
