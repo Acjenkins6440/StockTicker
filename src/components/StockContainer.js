@@ -22,10 +22,20 @@ const close = '4. close';
 const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const webSocketEndPoint = `wss://ws.finnhub.io?token=${apiConfig.finnhubKey}`;
 
-const minTime = (data) => ((data[data.length - 1]) ? data[data.length - 1].time : 0);
-const maxTime = (data) => ((data[0]) ? data[0].time : 0);
-const maxPrice = (data) => Math.max(...data.map((dataPoint) => dataPoint.high));
-const minPrice = (data) => Math.min(...data.map((dataPoint) => dataPoint.low));
+const minTime = data =>
+  Math.min(...data.map(dataPoint => dataPoint.time.getTime()));
+const maxTime = data =>
+  Math.max(...data.map(dataPoint => dataPoint.time.getTime()));
+
+const maxPrice = data => Math.max(...data.map(dataPoint => dataPoint.high));
+const minPrice = data => Math.min(...data.map(dataPoint => dataPoint.low));
+const highPrice = data => Math.max(...data.map(dataPoint => dataPoint.close));
+const lowPrice = data => Math.min(...data.map(dataPoint => dataPoint.close));
+const avgPrice = data => {
+  const mappedData = [...data].map(dataPoint => parseFloat(dataPoint.close));
+  return (mappedData.reduce((a, b) => a + b, 0) / mappedData.length).toFixed(2);
+};
+
 
 const formatYScale = (dollars) => `$${dollars}`;
 
@@ -63,6 +73,20 @@ const StockContainer = ({ stockSymbol }) => {
     updateSymbol(stockSymbol);
   }
   // Define constant functions
+  const getStats = () => {
+   const dataSet =
+     timeSelection === "tickerMode"
+       ? [...dataSets[series], ...dataSets.tickerData]
+       : dataSets[series];
+   const modifiedDataSet =
+     timeSelection === "30Days" ? dataSet.slice(0, 30) : dataSet;
+
+   return {
+     "Highest Price": highPrice(modifiedDataSet),
+     "Lowest Price": lowPrice(modifiedDataSet),
+     "Average Price": avgPrice(modifiedDataSet)
+   };
+ };
   const mouseoverFunc = (dataPoint) => {
     const dollarPrice = parseFloat(dataPoint.close);
     const timeStamp = (timeSelection === 'tickerMode')
@@ -113,8 +137,11 @@ const StockContainer = ({ stockSymbol }) => {
 
     const massagedData = timeList.map((timeStamp) => {
       const dataPoint = timeSeries[timeStamp];
+      const time = new Date(timeStamp);
+      //convert from EST to PST
+      time.setHours(time.getHours() -3);
       return {
-        time: new Date(timeStamp),
+        time: time,
         open: dataPoint[open],
         close: dataPoint[close],
         high: dataPoint[high],
@@ -136,16 +163,19 @@ const StockContainer = ({ stockSymbol }) => {
   };
 
   const handleNewTickerData = (tickerData) => {
-    const dataSet = dataSets[series];
+    const dataSet = [...dataSets[series], ...dataSets.tickerData];
     // Prevent the ticker data from updating more than once every second
     const timeStamp = new Date(tickerData.t * 1000);
-    const previousTime = dataSet[dataSet.length - 1].time;
-    const differenceInTime = timeStamp.getTime() - previousTime.getTime();
-    const shouldUpdate = differenceInTime >= 1;
+    const previousTime = new Date(maxTime(dataSet));
+    const differenceInSeconds = (timeStamp.getTime() - previousTime.getTime()) / 1000;
+    const shouldUpdate = differenceInSeconds >= 10;
+    //Future implementation, collect all data points within time period
+    //every 10-15 seconds, compile all trades within the period into a single data point of high, low, open, close
     if (shouldUpdate) {
       handleNewData(tickerData);
     }
   };
+
   const newTimeSelection = (e) => {
     const type = e.target.id;
     d3.selectAll('button')
@@ -173,18 +203,16 @@ const StockContainer = ({ stockSymbol }) => {
 
   const initializeTickerData = () => {
     const webSocket = new WebSocket(webSocketEndPoint);
-    webSocket.addEventListener('open', () => {
-      webSocket.send(
-        JSON.stringify({ type: 'subscribe', symbol }),
-      );
-    });
-    webSocket.addEventListener('message', (event) => {
+    webSocket.onopen = () => {
+      webSocket.send(JSON.stringify({ type: "subscribe", symbol }));
+    };
+    webSocket.onmessage = event => {
       const eventData = JSON.parse(event.data);
-      if (eventData.type === 'trade') {
+      if (eventData.type === "trade") {
         const stockData = eventData.data[0];
         handleNewTickerData(stockData);
       }
-    });
+    };
   };
 
   const buildGraph = () => {
@@ -239,8 +267,9 @@ const StockContainer = ({ stockSymbol }) => {
   };
 
   const updateGraph = () => {
-    const dataSet = (timeSelection === 'tickerMode') ? dataSets[series].concat(dataSets.tickerData) : dataSets[series];
+    const dataSet = (timeSelection === 'tickerMode') ? [...dataSets[series], ...dataSets.tickerData] : dataSets[series];
     const modifiedDataSet = (timeSelection === '30Days') ? dataSet.slice(0, 30) : dataSet;
+    const tickerMode = dataSet.length > 100;
 
     const xScale = getXScale(modifiedDataSet);
     const yScale = getYScale(modifiedDataSet);
@@ -248,7 +277,9 @@ const StockContainer = ({ stockSymbol }) => {
 
     const update = d3.select(graphContainer.current);
     const switchSets = (update.select('.line').datum()[0]) !== dataSet[0];
-
+    if (tickerMode) {
+      dataSet.sort((a, b) => b.time - a.time);
+    }
     update
       .select('.x-axis')
       .transition()
@@ -261,34 +292,52 @@ const StockContainer = ({ stockSymbol }) => {
       .duration(400)
       .call(d3.axisLeft(yScale)
         .tickFormat(formatYScale));
-    if (switchSets) {
+    if (switchSets || tickerMode) {
+        update
+          .select(".line")
+          .datum(dataSet)
+          .transition()
+          .attr("d", line);
+      } else {
+        update
+          .select(".line")
+          .transition()
+          .attr("d", line);
+      }
       update
-        .select('.line')
-        .datum(dataSet)
-        .transition()
-        .attr('d', line);
-    } else {
+        .selectAll("circle")
+        .data([])
+        .exit()
+        .remove();
+      if (!tickerMode) {
+        console.log("adhawl;ej")
+        update
+          .selectAll("dot")
+          .data(dataSet)
+          .enter()
+          .append("circle")
+          .transition()
+          .attr("r", 5)
+          .attr("cx", dataPoint => xScale(dataPoint.time))
+          .attr("cy", dataPoint => yScale(dataPoint.close))
+          .attr("transform", `translate(${margin.left},${margin.top})`)
+          .attr("clip-path", "url(#rect-clip)");
+      } else {
+        update
+          .selectAll("circle")
+          .data(dataSet)
+          .enter()
+          .append("circle")
+          .attr("r", 5)
+          .attr("cx", dataPoint => xScale(dataPoint.time))
+          .attr("cy", dataPoint => yScale(dataPoint.close))
+          .attr("transform", `translate(${margin.left},${margin.top})`)
+          .attr("clip-path", "url(#rect-clip)");
+      }
       update
-        .select('.line')
-        .transition()
-        .attr('d', line);
-    }
-    update.selectAll('circle')
-      .data([])
-      .exit()
-      .remove();
-    update.selectAll('dot')
-      .data(dataSet)
-      .enter().append('circle')
-      .transition()
-      .attr('r', 5)
-      .attr('cx', (dataPoint) => xScale(dataPoint.time))
-      .attr('cy', (dataPoint) => yScale(dataPoint.close))
-      .attr('transform', `translate(${margin.left},${margin.top})`)
-      .attr('clip-path', 'url(#rect-clip)');
-    update.selectAll('circle')
-      .on('mouseover', mouseoverFunc)
-      .on('mouseout', mouseoutFunc);
+        .selectAll("circle")
+        .on("mouseover", mouseoverFunc)
+        .on("mouseout", mouseoutFunc);
   };
 
   useEffect(() => {
@@ -300,6 +349,7 @@ const StockContainer = ({ stockSymbol }) => {
       return data;
     }
     if (timeSelection === 'tickerMode') {
+      //update daily series before updating intraday series when in ticker mode
       const updateDaily = true;
       getStockData()
         .then((response) => handleNewData(response, null, updateDaily));
@@ -312,7 +362,13 @@ const StockContainer = ({ stockSymbol }) => {
   useEffect(() => {
     const dataSet = dataSets[series];
     if (timeSelection === 'tickerMode') {
-      if (dataSet.length === 0) { initializeTickerMode(); } else if (dataSet.length === 100) { initializeTickerData(); }
+      if (dataSet.length === 0) {
+        initializeTickerMode();
+      } else if (dataSet.length === 100) {
+        initializeTickerData();
+      }
+    } else {
+      const closeWebSocket = new WebSocket(webSocketEndPoint);
     }
     if (graphContainer.current && dataSet.length > 0 && !isGraphInitialized()) {
       buildGraph();
@@ -334,6 +390,14 @@ const StockContainer = ({ stockSymbol }) => {
         height={height + margin.top + margin.bottom}
         ref={graphContainer}
       />
+      <div className="stats">
+        {dataSets[dailySeries].length !== 0
+          ? [...Object.keys(getStats())].map(key =>
+              <span key={key}> {key + ": $" + getStats()[key]}</span>
+          )
+          : <div />
+        }
+</div>
       <div className="button-area">
         <button onClick={newTimeSelection} id="90Days" type="button" className="active-button">90 Business Days</button>
         <button onClick={newTimeSelection} id="30Days" type="button">30 Business Days</button>

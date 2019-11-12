@@ -31,6 +31,11 @@ button:active{
 .dropdown {
   background-color: #C5C6C7;
 }
+.stats {
+  color: #C5C6C7;
+  margin-left: 10px;
+  margin-top: -10px;
+}
 .tooltip {
     position: absolute;
     text-align: center;
@@ -53,6 +58,7 @@ body {
 }
 .button-area {
   margin-left: 20%;
+  margin-top:20px;
 }
 .active-button {
   background-color: #45A29E;
