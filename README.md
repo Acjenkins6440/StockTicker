@@ -23,4 +23,5 @@ The Alphavantage key used is free-tier and only allows 5 requests per minute.  O
 
 ### TODO
 
-Replace stock dropdown with fuzzyfinder using alphavantage's search endpoint
+* Replace stock dropdown with fuzzyfinder using alphavantage's search endpoint
+* Combine all real-time trades into 1-minute-span data points with a high, low, open, and close property.  
