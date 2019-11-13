@@ -27,6 +27,7 @@ const maxTime = (data) => Math.max(...data.map((dataPoint) => dataPoint.time.get
 
 const maxPrice = (data) => Math.max(...data.map((dataPoint) => dataPoint.high));
 const minPrice = (data) => Math.min(...data.map((dataPoint) => dataPoint.low));
+
 const highPrice = (data) => Math.max(...data.map((dataPoint) => dataPoint.close));
 const lowPrice = (data) => Math.min(...data.map((dataPoint) => dataPoint.close));
 const avgPrice = (data) => {
@@ -100,7 +101,7 @@ const StockContainer = ({ stockSymbol }) => {
   const mouseoutFunc = () => {
     d3.select('.tooltip')
       .transition()
-      .duration(200)
+      .duration(50)
       .style('opacity', 0);
   };
 
@@ -270,7 +271,7 @@ const StockContainer = ({ stockSymbol }) => {
   const updateGraph = () => {
     const dataSet = (timeSelection === 'tickerMode') ? [...dataSets[series], ...dataSets.tickerData] : dataSets[series];
     const modifiedDataSet = (timeSelection === '30Days') ? dataSet.slice(0, 30) : dataSet;
-    const tickerMode = timeSelection === "tickerMode"
+    const tickerMode = timeSelection === 'tickerMode';
 
     const xScale = getXScale(modifiedDataSet);
     const yScale = getYScale(modifiedDataSet);
@@ -364,11 +365,12 @@ const StockContainer = ({ stockSymbol }) => {
     if (timeSelection === 'tickerMode') {
       if (dataSet.length === 0) {
         initializeTickerMode();
-      } else{
+      } else {
         initializeTickerData();
       }
     } else {
       const closeWebSocket = new WebSocket(webSocketEndPoint);
+      closeWebSocket.close();
     }
     if (graphContainer.current && dataSet.length > 0 && !isGraphInitialized()) {
       buildGraph();
@@ -396,6 +398,7 @@ const StockContainer = ({ stockSymbol }) => {
             <span key={key}>
               {' '}
               {`${key}: $${getStats()[key]}`}
+              <br />
             </span>
           ))
           : <div />}

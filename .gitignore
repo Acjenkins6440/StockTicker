@@ -6,7 +6,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # Distribution package
-
+dist/
 
 # Runtime data
 pids
@@ -38,7 +38,7 @@ build/Release
 # Dependency directories
 node_modules/
 jspm_packages/
-dist/
+
 
 # TypeScript v1 declaration files
 typings/

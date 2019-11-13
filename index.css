@@ -14,22 +14,24 @@ circle {
     fill: #45A29E;
     stroke: #000;
 }
-button {
-  background-color: #C5C6C7;
-}
-button:active{
-  background-color: #1F2833;
-}
 .focus circle {
   fill: none;
   stroke: steelblue;
 }
 .symbol-selector {
+  position: relative;
   margin-top: 15px;
   margin-left: 15px;
 }
 .dropdown {
-  background-color: #C5C6C7;
+  color: #000;
+  background-color: #66FCF1;
+  border: 0;
+  border-top-left-radius: 5px;
+  padding: 3px;
+}
+option {
+  background-color: #66FCF1;
 }
 .stats {
   color: #C5C6C7;
@@ -57,8 +59,14 @@ body {
   background-color: #0B0C10;
 }
 .button-area {
-  margin-left: 20%;
-  margin-top:20px;
+  position: relative;
+  left: 50%;
+  margin-left: -159px;
+}
+button {
+  background-color: #66FCF1;
+  border-width: 0 1px 0 0;
+  padding: 5px;
 }
 .active-button {
   background-color: #45A29E;
@@ -75,9 +83,10 @@ body {
 .graph-area {
   z-index: 1;
   background-color: #1F2833;
-  position: absolute;
-  margin-right: 10%;
-  border-radius: 5%;
+  position: fixed;
+  left: 50%;
+  margin-left: -722px;
+  border-radius: 30px;
   border-width: 5px;
   border-color: white;
 }
