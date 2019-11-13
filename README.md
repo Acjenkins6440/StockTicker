@@ -1,6 +1,6 @@
 # Stock Ticker
 
-This app shows 90 and 30 day historical stock data for three selectable stocks.  
+This app shows 90 and 30 day historical stock data for three selectable stocks, as well as a ticker mode that displays real time trades.  
 
 ### Tracking a new stock
 
