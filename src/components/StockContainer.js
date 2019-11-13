@@ -64,12 +64,13 @@ const StockContainer = ({ stockSymbol }) => {
   });
   const [timeSelection, updateTimeSelection] = useState('90Days');
   const [symbol, updateSymbol] = useState(stockSymbol);
-  const alphavantageURL = `https://www.alphavantage.co/query?apikey=${apiConfig.alphavantageKey2}&symbol=${symbol}&function=`;
+  const alphavantageURL = `https://www.alphavantage.co/query?apikey=${apiConfig.alphavantageKey}&symbol=${symbol}&function=`;
   const series = (timeSelection === 'tickerMode') ? minuteSeries : dailySeries;
   // Update symbol if necessary
   if (symbol !== stockSymbol) {
     updateSymbol(stockSymbol);
   }
+  const intraDayLength = dataSets[minuteSeries].length;
   // Define constant functions
   const getStats = () => {
     const dataSet = timeSelection === 'tickerMode'
@@ -163,7 +164,7 @@ const StockContainer = ({ stockSymbol }) => {
 
   const handleNewTickerData = (tickerData) => {
     const dataSet = [...dataSets[series], ...dataSets.tickerData];
-    // Prevent the ticker data from updating more than once every second
+    // Prevent the ticker data from updating more than once every 10 seconds
     const timeStamp = new Date(tickerData.t * 1000);
     const previousTime = new Date(maxTime(dataSet));
     const differenceInSeconds = (timeStamp.getTime() - previousTime.getTime()) / 1000;
@@ -269,7 +270,7 @@ const StockContainer = ({ stockSymbol }) => {
   const updateGraph = () => {
     const dataSet = (timeSelection === 'tickerMode') ? [...dataSets[series], ...dataSets.tickerData] : dataSets[series];
     const modifiedDataSet = (timeSelection === '30Days') ? dataSet.slice(0, 30) : dataSet;
-    const tickerMode = dataSet.length > 100;
+    const tickerMode = timeSelection === "tickerMode"
 
     const xScale = getXScale(modifiedDataSet);
     const yScale = getYScale(modifiedDataSet);
@@ -340,7 +341,7 @@ const StockContainer = ({ stockSymbol }) => {
   };
 
   useEffect(() => {
-    const alphavantageURL = `https://www.alphavantage.co/query?apikey=${apiConfig.alphavantageKey2}&symbol=${symbol}&function=`;
+    const alphavantageURL = `https://www.alphavantage.co/query?apikey=${apiConfig.alphavantageKey}&symbol=${symbol}&function=`;
     const endPoint = alphavantageURL + dailyFunction;
     async function getStockData() {
       const response = await fetch(endPoint);
@@ -363,7 +364,7 @@ const StockContainer = ({ stockSymbol }) => {
     if (timeSelection === 'tickerMode') {
       if (dataSet.length === 0) {
         initializeTickerMode();
-      } else if (dataSet.length === 100) {
+      } else{
         initializeTickerData();
       }
     } else {
