@@ -56,7 +56,7 @@ const getLine = (xScale, yScale) => d3
 const isGraphInitialized = () => document.getElementById('initializedGraph') !== null;
 
 const StockContainer = ({ stockSymbol }) => {
-  // Define constants
+  // Define state and constants
   const graphContainer = useRef(null);
   const [dataSets, updateDataSets] = useState({
     [dailySeries]: [],
@@ -85,6 +85,7 @@ const StockContainer = ({ stockSymbol }) => {
       'Average Price': avgPrice(modifiedDataSet),
     };
   };
+
   const mouseoverFunc = (dataPoint) => {
     const dollarPrice = parseFloat(dataPoint.close);
     const timeStamp = (timeSelection === 'tickerMode')
@@ -124,7 +125,7 @@ const StockContainer = ({ stockSymbol }) => {
       });
       return;
     }
-    // Replacing dataSets
+    // Replacing dataSets so daily data updates first, when switching symbols while in ticker mode
     const timeSeries = updateDaily
       ? newDataSet[dailySeries]
       : newDataSet[series];
@@ -134,7 +135,6 @@ const StockContainer = ({ stockSymbol }) => {
     const timeList = (tickerMode)
       ? [...Object.keys(timeSeries).filter((date) => new Date(date).getDay() === lastMarketDay)]
       : [...Object.keys(timeSeries).slice(0, 90)];
-
 
     const massagedData = timeList.map((timeStamp) => {
       const dataPoint = timeSeries[timeStamp];
@@ -163,32 +163,6 @@ const StockContainer = ({ stockSymbol }) => {
     }
   };
 
-  const handleNewTickerData = (tickerData) => {
-    const dataSet = [...dataSets[series], ...dataSets.tickerData];
-    // Prevent the ticker data from updating more than once every 10 seconds
-    const timeStamp = new Date(tickerData.t * 1000);
-    const previousTime = new Date(maxTime(dataSet));
-    const differenceInSeconds = (timeStamp.getTime() - previousTime.getTime()) / 1000;
-    const shouldUpdate = differenceInSeconds >= 10;
-    // Future implementation, collect all data points within time period
-    // every 10-15 seconds, compile all trades within the period into a
-    // single data point of high, low, open, close
-    if (shouldUpdate) {
-      handleNewData(tickerData);
-    }
-  };
-
-  const newTimeSelection = (e) => {
-    const type = e.target.id;
-    d3.selectAll('button')
-      .attr('class', '');
-    e.target.className = 'active-button';
-    if (type === timeSelection) {
-      return;
-    }
-    updateTimeSelection(type);
-  };
-
   const initializeTickerMode = () => {
     const interval = '1min';
     const outputSize = 'compact';
@@ -201,6 +175,18 @@ const StockContainer = ({ stockSymbol }) => {
     }
     getIntraDayData()
       .then((response) => handleNewData(response, tickerMode));
+  };
+
+  const handleNewTickerData = (tickerData) => {
+    const dataSet = [...dataSets[series], ...dataSets.tickerData];
+    // Prevent the ticker data from updating more than once every 10 seconds
+    const timeStamp = new Date(tickerData.t * 1000);
+    const previousTime = new Date(maxTime(dataSet));
+    const differenceInSeconds = (timeStamp.getTime() - previousTime.getTime()) / 1000;
+    const shouldUpdate = differenceInSeconds >= 10;
+    if (shouldUpdate) {
+      handleNewData(tickerData);
+    }
   };
 
   const initializeTickerData = () => {
@@ -237,7 +223,7 @@ const StockContainer = ({ stockSymbol }) => {
       .append('svg:clipPath')
       .attr('id', 'rect-clip')
       .append('svg:rect')
-      .attr('width', width + 10)
+      .attr('width', width + 5)
       .attr('height', height)
       .attr('x', 0)
       .attr('y', 0);
@@ -269,9 +255,9 @@ const StockContainer = ({ stockSymbol }) => {
   };
 
   const updateGraph = () => {
-    const dataSet = (timeSelection === 'tickerMode') ? [...dataSets[series], ...dataSets.tickerData] : dataSets[series];
-    const modifiedDataSet = (timeSelection === '30Days') ? dataSet.slice(0, 30) : dataSet;
     const tickerMode = timeSelection === 'tickerMode';
+    const dataSet = (tickerMode) ? [...dataSets[series], ...dataSets.tickerData] : dataSets[series];
+    const modifiedDataSet = (timeSelection === '30Days') ? dataSet.slice(0, 30) : dataSet;
 
     const xScale = getXScale(modifiedDataSet);
     const yScale = getYScale(modifiedDataSet);
@@ -279,9 +265,11 @@ const StockContainer = ({ stockSymbol }) => {
 
     const update = d3.select(graphContainer.current);
     const switchSets = (update.select('.line').datum()[0]) !== dataSet[0];
+
     if (tickerMode) {
       dataSet.sort((a, b) => b.time - a.time);
     }
+
     update
       .select('.x-axis')
       .transition()
@@ -313,7 +301,7 @@ const StockContainer = ({ stockSymbol }) => {
       .remove();
     if (!tickerMode) {
       update
-        .selectAll('dot')
+        .selectAll('circle')
         .data(dataSet)
         .enter()
         .append('circle')
@@ -339,6 +327,17 @@ const StockContainer = ({ stockSymbol }) => {
       .selectAll('circle')
       .on('mouseover', mouseoverFunc)
       .on('mouseout', mouseoutFunc);
+  };
+
+  const newTimeSelection = (e) => {
+    const type = e.target.id;
+    d3.selectAll('button')
+      .attr('class', '');
+    e.target.className = 'active-button';
+    if (type === timeSelection) {
+      return;
+    }
+    updateTimeSelection(type);
   };
 
   useEffect(() => {
@@ -370,7 +369,7 @@ const StockContainer = ({ stockSymbol }) => {
       }
     } else {
       const closeWebSocket = new WebSocket(webSocketEndPoint);
-      closeWebSocket.close();
+      closeWebSocket.onopen = () => { closeWebSocket.close(); };
     }
     if (graphContainer.current && dataSet.length > 0 && !isGraphInitialized()) {
       buildGraph();
@@ -392,6 +391,11 @@ const StockContainer = ({ stockSymbol }) => {
         height={height + margin.top + margin.bottom}
         ref={graphContainer}
       />
+      <div className="button-area">
+        <button onClick={newTimeSelection} id="90Days" type="button" className="active-button">90 Business Days</button>
+        <button onClick={newTimeSelection} id="30Days" type="button">30 Business Days</button>
+        <button onClick={newTimeSelection} id="tickerMode" type="button">Ticker Mode</button>
+      </div>
       <div className="stats">
         {dataSets[series].length !== 0
           ? [...Object.keys(getStats())].map((key) => (
@@ -402,11 +406,6 @@ const StockContainer = ({ stockSymbol }) => {
             </span>
           ))
           : <div />}
-      </div>
-      <div className="button-area">
-        <button onClick={newTimeSelection} id="90Days" type="button" className="active-button">90 Business Days</button>
-        <button onClick={newTimeSelection} id="30Days" type="button">30 Business Days</button>
-        <button onClick={newTimeSelection} id="tickerMode" type="button">Ticker Mode</button>
       </div>
     </div>
   );

@@ -1,77 +1,7 @@
-.line {
-    fill: none;
-    stroke: #66FCF1;
-    stroke-width: 3;
-}
-
-.overlay {
-  fill: none;
-  pointer-events: all;
-}
-
-/* Style the dots by assigning a fill and stroke */
-circle {
-    fill: #45A29E;
-    stroke: #000;
-}
-.focus circle {
-  fill: none;
-  stroke: steelblue;
-}
-.symbol-selector {
-  position: relative;
-  margin-top: 15px;
-  margin-left: 15px;
-}
-.dropdown {
-  color: #000;
-  background-color: #66FCF1;
-  border: 0;
-  border-top-left-radius: 5px;
-  padding: 3px;
-}
-option {
-  background-color: #66FCF1;
-}
-.stats {
-  color: #C5C6C7;
-  margin-left: 10px;
-  margin-top: -10px;
-}
-.tooltip {
-    position: absolute;
-    text-align: center;
-    width: 80px;
-    height: 28px;
-    padding: 2px;
-    font: 12px sans-serif;
-    background: #C5C6C7;
-    border: 0px;
-    border-radius: 8px;
-    z-index: 10;
-    margin-top: -38px;
-}
-.x-axis,
-.y-axis {
-  color: #C5C6C7;
-}
 body {
   background-color: #0B0C10;
 }
-.button-area {
-  position: relative;
-  left: 50%;
-  margin-left: -159px;
-  padding-bottom: 5px;
-}
-button {
-  background-color: #66FCF1;
-  border-width: 0 1px 0 0;
-  padding: 5px;
-}
-.active-button {
-  background-color: #45A29E;
-}
+
 .loading {
   z-index: 10;
   left:50%;
@@ -81,6 +11,7 @@ button {
   color: #66FCF1;
   font-size: 30px;
 }
+
 .graph-area {
   z-index: 1;
   background-color: #1F2833;
@@ -90,4 +21,76 @@ button {
   border-radius: 30px;
   border-width: 5px;
   border-color: white;
+}
+
+.x-axis,
+.y-axis {
+  color: #C5C6C7;
+}
+
+circle {
+    fill: #45A29E;
+    stroke: #000;
+}
+
+.line {
+    fill: none;
+    stroke: #66FCF1;
+    stroke-width: 3;
+}
+
+.tooltip {
+  position: absolute;
+  text-align: center;
+  width: 80px;
+  height: 28px;
+  padding: 2px;
+  font: 12px sans-serif;
+  background: #C5C6C7;
+  border: 0px;
+  border-radius: 8px;
+  z-index: 10;
+  margin-top: -38px;
+}
+
+.symbol-selector {
+  position: relative;
+  margin-top: 15px;
+  margin-left: 15px;
+}
+
+.dropdown {
+  color: #000;
+  background-color: #66FCF1;
+  border: 0;
+  border-top-left-radius: 5px;
+  padding: 3px;
+}
+
+option {
+  background-color: #66FCF1;
+}
+
+.button-area {
+  position: relative;
+  left: 50%;
+  margin-left: -159px;
+  margin-bottom: 25px;
+}
+
+button {
+  background-color: #66FCF1;
+  border-width: 0 1px 0 0;
+  padding: 5px;
+}
+
+.active-button {
+  background-color: #45A29E;
+}
+
+.stats {
+  color: #C5C6C7;
+  margin-left: 10px;
+  margin-top: -20px;
+  margin-bottom: 10px;
 }
