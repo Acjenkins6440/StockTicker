@@ -71,7 +71,7 @@ const StockContainer = ({ stockSymbol }) => {
   if (symbol !== stockSymbol) {
     updateSymbol(stockSymbol);
   }
-  const intraDayLength = dataSets[minuteSeries].length;
+
   // Define constant functions
   const getStats = () => {
     const dataSet = timeSelection === 'tickerMode'
