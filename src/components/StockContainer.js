@@ -8,8 +8,8 @@ import apiConfig from '../../config';
 const margin = {
   top: 50, bottom: 50, left: 50, right: 50,
 };
-const width = Math.max(document.documentElement.clientWidth * 0.7 || 600);
-const height = Math.max(document.documentElement.clientHeight * 0.6 || 500);
+const width = 1200;
+const height = 600;
 
 const dailyFunction = 'TIME_SERIES_DAILY';
 const intraDayFunction = 'TIME_SERIES_INTRADAY';
@@ -393,7 +393,7 @@ const StockContainer = ({ stockSymbol }) => {
         ref={graphContainer}
       />
       <div className="stats">
-        {dataSets[dailySeries].length !== 0
+        {dataSets[series].length !== 0
           ? [...Object.keys(getStats())].map((key) => (
             <span key={key}>
               {' '}
