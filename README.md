@@ -12,7 +12,7 @@ Ticker mode fetches the last few hours of trade data, and then starts appending 
 
 ### How To Open
 
-1) `git clone` to copy master repository 
+1) `git clone https://github.com/Acjenkins6440/StockTicker.git` to copy master repository 
 2) `cd StockTicker` to enter newly cloned directory
 3) `npm install` to install dependencies
 4) `npm start` to host build locally 
