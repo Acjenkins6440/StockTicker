@@ -55,6 +55,17 @@ const getLine = (xScale, yScale) => d3
 
 const isGraphInitialized = () => document.getElementById('initializedGraph') !== null;
 
+const consolidateTickerArray = (tickerArray) => {
+  const tickerPoint = { isTickerPoint: true };
+  tickerPoint.open = tickerArray[0].p;
+  tickerPoint.close = tickerArray[tickerArray.length - 1].p;
+  tickerPoint.high = Math.max(...tickerArray.map((dataPoint) => dataPoint.p));
+  tickerPoint.low = Math.min(...tickerArray.map((dataPoint) => dataPoint.p));
+  tickerPoint.time = new Date(tickerArray[tickerArray.length - 1].t);
+  tickerArray.splice(0, tickerArray.length);
+  return tickerPoint;
+};
+
 const StockContainer = ({ stockSymbol }) => {
   // Define state and constants
   const graphContainer = useRef(null);
@@ -65,6 +76,7 @@ const StockContainer = ({ stockSymbol }) => {
   });
   const [timeSelection, updateTimeSelection] = useState('90Days');
   const [symbol, updateSymbol] = useState(stockSymbol);
+  const tickerArray = [];
   const alphavantageURL = `https://www.alphavantage.co/query?apikey=${apiConfig.alphavantageKey}&symbol=${symbol}&function=`;
   const series = (timeSelection === 'tickerMode') ? minuteSeries : dailySeries;
   // Update symbol if necessary
@@ -108,20 +120,10 @@ const StockContainer = ({ stockSymbol }) => {
 
   const handleNewData = (newDataSet, tickerMode, updateDaily) => {
     // Tacking on single data points from the ticker
-    const singleDataPoint = newDataSet.t !== undefined;
-    if (singleDataPoint) {
-      const timeStamp = new Date(newDataSet.t * 1000);
-      const price = `${newDataSet.p}`;
-      const massagedDataPoint = {
-        time: timeStamp,
-        close: price,
-        open: price,
-        high: price,
-        low: price,
-      };
+    if (newDataSet.isTickerPoint) {
       updateDataSets({
         ...dataSets,
-        tickerData: [...dataSets.tickerData, massagedDataPoint],
+        tickerData: [...dataSets.tickerData, newDataSet],
       });
       return;
     }
@@ -178,15 +180,18 @@ const StockContainer = ({ stockSymbol }) => {
   };
 
   const handleNewTickerData = (tickerData) => {
-    const dataSet = [...dataSets[series], ...dataSets.tickerData];
-    // Prevent the ticker data from updating more than once every 10 seconds
-    const timeStamp = new Date(tickerData.t * 1000);
-    const previousTime = new Date(maxTime(dataSet));
-    const differenceInSeconds = (timeStamp.getTime() - previousTime.getTime()) / 1000;
-    const shouldUpdate = differenceInSeconds >= 10;
-    if (shouldUpdate) {
-      handleNewData(tickerData);
+    if (tickerArray.length) {
+      const timeStamp = new Date(tickerData.t * 1000);
+      const previousTime = new Date(tickerArray[0].t * 1000);
+      const differenceInSeconds = (timeStamp.getTime() - previousTime.getTime()) / 1000 / 1000;
+      const shouldConsolidate = differenceInSeconds >= 5;
+      if (shouldConsolidate) {
+        const consolidatedTickerPoint = consolidateTickerArray(tickerArray);
+        handleNewData(consolidatedTickerPoint);
+        return;
+      }
     }
+    tickerArray.push(tickerData);
   };
 
   const initializeTickerData = () => {
